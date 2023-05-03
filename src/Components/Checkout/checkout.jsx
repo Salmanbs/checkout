@@ -41,6 +41,7 @@ import SwitchOn from "../../assets/Switch.png";
 import SwitchOff from "../../assets/Switch_off.png";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Divider } from "@mui/material";
+import { FormHelperText } from "@mui/material";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -121,18 +122,28 @@ export default function Checkout(props) {
   };
 
   const onAdd = (e) => {
-    if (
-      !valueNameEdit.type ||
-      !valueNameEdit.discount_type ||
-      !valueNameEdit.discount ||
-      (valueNameEdit.type === "monthly" && !valueNameEdit.duration)
-    ) {
-      alert("Please fill in all required fields.");
-      return;
+    const { type, discount_type, discount, duration } = valueNameEdit;
+
+    switch (true) {
+      case !type ||
+        !discount_type ||
+        !discount ||
+        (type === "monthly" && !duration):
+        alert("Please fill in all required fields.");
+        return;
+      case discount_type === "percentage" && discount > 100:
+        alert("Discount exceeds 100");
+        return;
+      case discount_type === "euro" &&
+        ((type === "one_time" && discount > total_cost) ||
+          (type === "monthly" && discount > monthly_price)):
+        alert("Discount exceeds total cost");
+        return;
+      default:
+        handleCloseOpenDialogAddField();
+        setDiscount(valueNameEdit);
+        setShow(true);
     }
-    handleCloseOpenDialogAddField();
-    setDiscount(valueNameEdit);
-    setShow(true);
   };
 
   const alldata = [
@@ -174,7 +185,6 @@ export default function Checkout(props) {
     },
   ];
 
-  console.log(discount, show, "valueNameEdit");
   return (
     <>
       <div className="App">
@@ -479,13 +489,13 @@ export default function Checkout(props) {
                           </div>
                           <div className="my-unique-class">
                             <span>
-                              For the First {discount.duration} months
+                              For the First {discount.duration} months pay
                             </span>
                             <span>
                               {discount.discount_type === "percentage" ? (
                                 <>
                                   {" "}
-                                  {`- € ${
+                                  {`€ ${
                                     (monthly_price *
                                       (100 - discount.discount)) /
                                     100
@@ -494,7 +504,7 @@ export default function Checkout(props) {
                               ) : (
                                 <>
                                   {" "}
-                                  {`- € ${monthly_price - discount.discount}`}
+                                  {` € ${monthly_price - discount.discount}`}
                                 </>
                               )}
                             </span>
@@ -670,6 +680,11 @@ export default function Checkout(props) {
                       value={valueNameEdit.discount}
                       onKeyDown={setWriteTrue}
                       onChange={(e) => {
+                        const discount = parseInt(e.target.value);
+                        // if (discount > total_cost) {
+                        //   alert("Discount cannot exceed total price.");
+                        //   return;
+                        // }
                         setValueNameEdit((state) => ({
                           ...state,
                           discount: e.target.value,
@@ -677,6 +692,29 @@ export default function Checkout(props) {
                       }}
                     />
                   </div>
+                  {valueNameEdit.discount_type == "percentage" ? (
+                    parseInt(valueNameEdit.discount) > 100 && (
+                      <FormHelperText error={true}>
+                        Discount cannot exceed 100.
+                      </FormHelperText>
+                    )
+                  ) : (
+                    <>
+                      {valueNameEdit.discount > total_cost &&
+                        valueNameEdit.type == "one_time" && (
+                          <FormHelperText error={true}>
+                            Discount cannot exceed total price.
+                          </FormHelperText>
+                        )}
+                      {valueNameEdit.discount > monthly_price &&
+                        valueNameEdit.type == "monthly" && (
+                          <FormHelperText error={true}>
+                            Discount cannot exceed monthly price.
+                          </FormHelperText>
+                        )}
+                    </>
+                  )}
+
                   <FormControl sx={{ mt: 2, width: "100%" }}>
                     {valueNameEdit.type === "monthly" ? (
                       <>
