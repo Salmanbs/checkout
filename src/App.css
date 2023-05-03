@@ -1,10 +1,36 @@
 .App {
   text-align: center;
+  background-color: #F3F3F5;
 }
 
 .App-logo {
   height: 40vmin;
   pointer-events: none;
+}
+
+.my-unique-class{
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.my-unique-class span:first-child {
+  order: 1;
+  margin-left: 20px;
+
+}
+
+.my-unique-class span:last-child {
+  order: 2;
+  margin-right: 20px;
+}
+
+.main-container{
+  padding: 65px;
+}
+
+.highlighted{
+  font-weight: bold;
 }
 
 @media (prefers-reduced-motion: no-preference) {
